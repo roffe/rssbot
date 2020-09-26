@@ -71,7 +71,7 @@ func saveConfig() {
 	config.Lock()
 	defer config.Unlock()
 
-	f, err := os.OpenFile(configFile, os.O_CREATE|os.O_TRUNC, 0644)
+	f, err := os.OpenFile(configFile, os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
