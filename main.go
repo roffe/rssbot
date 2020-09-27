@@ -206,6 +206,7 @@ func processFeed(ctx context.Context, name string, feed *Feed, sem chan token, w
 					msg := webhook.NewMessage(hookURL, true)
 					e := &webhook.Embed{
 						Title:       news.Title,
+						Type:        webhook.TypeRich,
 						Description: desc[0:cap] + "...",
 						URL:         news.Link,
 						Color:       webhook.Hex2int(feed.Color),
@@ -214,6 +215,11 @@ func processFeed(ctx context.Context, name string, feed *Feed, sem chan token, w
 							URL:    "https://static.mmo-champion.com/images/tranquilizing/logo.png",
 							Width:  157,
 							Height: 90,
+						},
+						Author: &webhook.EmbedAuthor{
+							Name:    "By Purple Haze",
+							URL:     "https://purplehazeeu.com",
+							IconURL: "https://purplehazeeu.com/wp/wp-content/uploads/2020/09/ph-logo-smal.png",
 						},
 					}
 					if image != "" {
