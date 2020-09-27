@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
 	"github.com/roffe/rssbot/webhook"
@@ -179,15 +180,30 @@ func processFeed(ctx context.Context, name string, feed *Feed, sem chan token, w
 			if feed.LastPublished.Unix() < news.PublishedParsed.Unix() {
 				feed.LastPublished = *news.PublishedParsed
 				log.Println(news.Title, news.Published)
+				r := strings.NewReader(news.Description)
+				doc, err := goquery.NewDocumentFromReader(r)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				var image string
+				doc.Find("img").EachWithBreak(func(i int, s *goquery.Selection) bool {
+					img, exists := s.Attr("src")
+					if exists {
+						image = img
+					}
+					return false
+				})
+
+				desc := p.Sanitize(news.Description)
+				desc = strings.ReplaceAll(desc, "\t", "")
+				desc = nl.ReplaceAllString(desc, "\n")
+				cap := 500
+				if len(desc) < 500 {
+					cap = len(desc)
+				}
 				for _, hookURL := range feed.Hooks {
 					msg := webhook.NewMessage(hookURL, true)
-					desc := p.Sanitize(news.Description)
-					desc = strings.ReplaceAll(desc, "\t", "")
-					desc = nl.ReplaceAllString(desc, "\n")
-					cap := 500
-					if len(desc) < 500 {
-						cap = len(desc)
-					}
 					e := &webhook.Embed{
 						Title:       news.Title,
 						Description: desc[0:cap] + "...",
@@ -200,6 +216,12 @@ func processFeed(ctx context.Context, name string, feed *Feed, sem chan token, w
 							Height: 90,
 						},
 					}
+					if image != "" {
+						e.Image = &webhook.EmbedImage{
+							URL: image,
+						}
+					}
+
 					if news.Image != nil {
 						e.Thumbnail = &webhook.EmbedThumbnail{
 							URL: news.Image.URL,
