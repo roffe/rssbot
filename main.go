@@ -165,7 +165,7 @@ func processFeed(ctx context.Context, name string, feed *Feed, sem chan token, w
 		log.Printf("fetching %s - %s\n", name, feed.URL)
 	}
 
-	ctx2, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx2, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
 
 	rssFeed, err := gofeed.NewParser().ParseURLWithContext(feed.URL, ctx2)
